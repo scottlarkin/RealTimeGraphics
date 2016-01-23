@@ -1,0 +1,31 @@
+﻿Build started 22/01/2016 16:59:53.
+     1>Project "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\SceneModel\SceneModel.vcxproj" on node 3 (Build target(s)).
+     1>Lib:
+         SceneModel.vcxproj -> C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\SceneModel\lib\Win32\v120\Debug\SceneModel.lib
+       PostBuildEvent:
+         xcopy /E /S /I /Y "doc" "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\external\doc"
+         xcopy /E /S /I /Y "include" "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\external\include"
+         xcopy /E /S /I /Y "lib" "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\external\lib"
+         :VCEnd
+         File not found - doc
+         0 File(s) copied
+         include\SceneModel\Camera.hpp
+         include\SceneModel\Context.hpp
+         include\SceneModel\DirectionalLight.hpp
+         include\SceneModel\GeometryBuilder.hpp
+         include\SceneModel\Instance.hpp
+         include\SceneModel\Material.hpp
+         include\SceneModel\Mesh.hpp
+         include\SceneModel\PointLight.hpp
+         include\SceneModel\SceneModel.hpp
+         include\SceneModel\SceneModel_fwd.hpp
+         include\SceneModel\SpotLight.hpp
+         11 File(s) copied
+         lib\Win32\v120\Debug\SceneModel.lib
+         lib\Win32\v120\Debug\scenemodel.pdb
+         2 File(s) copied
+     1>Done Building Project "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\SceneModel\SceneModel.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.23

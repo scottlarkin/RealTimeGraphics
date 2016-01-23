@@ -1,0 +1,25 @@
+﻿Build started 22/01/2016 16:59:53.
+     1>Project "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\tygra\tygra.vcxproj" on node 2 (Build target(s)).
+     1>Lib:
+         tygra.vcxproj -> C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\tygra\lib\Win32\v120\Debug\tygra.lib
+       PostBuildEvent:
+         xcopy /E /S /I /Y "doc" "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\external\doc"
+         xcopy /E /S /I /Y "include" "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\external\include"
+         xcopy /E /S /I /Y "lib" "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\external\lib"
+         :VCEnd
+         File not found - doc
+         0 File(s) copied
+         include\tygra\FileHelper.hpp
+         include\tygra\Image.hpp
+         include\tygra\Window.hpp
+         include\tygra\WindowControlDelegate.hpp
+         include\tygra\WindowViewDelegate.hpp
+         5 File(s) copied
+         lib\Win32\v120\Debug\tygra.lib
+         lib\Win32\v120\Debug\tygra.pdb
+         2 File(s) copied
+     1>Done Building Project "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\tygra\tygra.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.18

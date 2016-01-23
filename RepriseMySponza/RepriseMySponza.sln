@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RepriseMySponza", "RepriseMySponza\RepriseMySponza.vcxproj", "{4D28A92A-644B-45F8-9801-35472CAC0E5B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B081F829-6192-4869-AB87-CE514667BC6D} = {B081F829-6192-4869-AB87-CE514667BC6D}
+		{7156367D-5490-4133-8788-6CAEA746AD48} = {7156367D-5490-4133-8788-6CAEA746AD48}
+		{95BB7187-0E5A-444E-98C2-E765E5B75C70} = {95BB7187-0E5A-444E-98C2-E765E5B75C70}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tgl", "tgl\tgl.vcxproj", "{7156367D-5490-4133-8788-6CAEA746AD48}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tygra", "tygra\tygra.vcxproj", "{95BB7187-0E5A-444E-98C2-E765E5B75C70}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7156367D-5490-4133-8788-6CAEA746AD48} = {7156367D-5490-4133-8788-6CAEA746AD48}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SceneModel", "SceneModel\SceneModel.vcxproj", "{B081F829-6192-4869-AB87-CE514667BC6D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7156367D-5490-4133-8788-6CAEA746AD48} = {7156367D-5490-4133-8788-6CAEA746AD48}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A6683FF4-D58A-4B46-9C57-76C0D74C5D32}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4D28A92A-644B-45F8-9801-35472CAC0E5B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4D28A92A-644B-45F8-9801-35472CAC0E5B}.Debug|Win32.Build.0 = Debug|Win32
+		{4D28A92A-644B-45F8-9801-35472CAC0E5B}.Release|Win32.ActiveCfg = Release|Win32
+		{4D28A92A-644B-45F8-9801-35472CAC0E5B}.Release|Win32.Build.0 = Release|Win32
+		{7156367D-5490-4133-8788-6CAEA746AD48}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7156367D-5490-4133-8788-6CAEA746AD48}.Debug|Win32.Build.0 = Debug|Win32
+		{7156367D-5490-4133-8788-6CAEA746AD48}.Release|Win32.ActiveCfg = Release|Win32
+		{7156367D-5490-4133-8788-6CAEA746AD48}.Release|Win32.Build.0 = Release|Win32
+		{95BB7187-0E5A-444E-98C2-E765E5B75C70}.Debug|Win32.ActiveCfg = Debug|Win32
+		{95BB7187-0E5A-444E-98C2-E765E5B75C70}.Debug|Win32.Build.0 = Debug|Win32
+		{95BB7187-0E5A-444E-98C2-E765E5B75C70}.Release|Win32.ActiveCfg = Release|Win32
+		{95BB7187-0E5A-444E-98C2-E765E5B75C70}.Release|Win32.Build.0 = Release|Win32
+		{B081F829-6192-4869-AB87-CE514667BC6D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B081F829-6192-4869-AB87-CE514667BC6D}.Debug|Win32.Build.0 = Debug|Win32
+		{B081F829-6192-4869-AB87-CE514667BC6D}.Release|Win32.ActiveCfg = Release|Win32
+		{B081F829-6192-4869-AB87-CE514667BC6D}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+EndGlobal
