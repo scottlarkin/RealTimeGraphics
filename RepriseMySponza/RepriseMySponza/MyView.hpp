@@ -68,14 +68,14 @@ private:
 		glm::vec2 texCoords;
 	};
 
-	struct pointLightInstanceData
+	struct PointLight
 	{
-		glm::vec3 position;
-		float range;
+		glm::vec3 intensity;
+		float pad;
 		glm::mat4 xForm;
 	};
-	
-	struct instanceData
+
+	struct InstanceData
 	{
 		float matColour;
 		glm::mat4 xForm;
@@ -89,10 +89,10 @@ private:
 		int element_count;
 		GLuint instance_data_vbo;
 
-		LightMesh() :	vertex_vbo(0),
-						element_vbo(0),
-						vao(0),
-						element_count(0) {}
+		LightMesh() : vertex_vbo(0),
+			element_vbo(0),
+			vao(0),
+			element_count(0) {}
 
 	};
 
@@ -119,11 +119,12 @@ private:
 			element_count(0) {}
 	};
 
-	std::vector<Mesh> meshes_;
-
-	float aspect_ratio_;
-	glm::vec3 upDir_;
-	glm::mat4 projection_xform_;
+	struct SamplerUniforms
+	{
+		GLuint position;
+		GLuint normal;
+		GLuint material;
+	};
 
 	struct PerFrameUniforms
 	{
@@ -133,26 +134,18 @@ private:
 		glm::vec3 cameraPos;
 	};
 
-	struct PerLightUniforms
+	struct Material
 	{
-		glm::vec3 lightDirection;
-		float lightFoV;
-		glm::vec3 lightPosition;
-		float lightRange;
-		glm::vec3 lightIntensity;
-	};
-
-	struct Material{
 		glm::vec3 dColour;
 		float shininess;
 		glm::vec3 sColour;
 		float pad;
 	};
 
-	GLuint perLight_ubo_;
-	//GLuint perModel_ubo_;
+	//Uniform buffer objects
 	GLuint perFrame_ubo_;
 	GLuint material_ubo_;
+	GLuint pointLight_ubo_;
 
 	//deferred shading stuff
 	GLuint gbuffer_position_tex_;
@@ -166,7 +159,19 @@ private:
 	GLuint gbuffer_depth_rbo_;
 	GLuint gbuffer_fbo_;
 
+
+	std::vector<Mesh> meshes_;
+
+	glm::vec3 upDir_;
+	glm::mat4 projection_xform_;
+
 	int width_;
 	int height_;
+
+	float aspect_ratio_;
+
+	int pointLightCount_;
+	int spotLightCount_;
+	int directionalLightCount_;
 
 };

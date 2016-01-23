@@ -23,6 +23,109 @@ setScene(std::shared_ptr<const SceneModel::Context> scene)
 }
 
 
+void MyView::generateLightMeshes()
+{
+	//full screen quad (directional / ambient lighting)
+	{
+		std::vector<glm::vec2> vertices(4);
+		vertices[0] = glm::vec2(-1, -1);
+		vertices[1] = glm::vec2(1, -1);
+		vertices[2] = glm::vec2(1, 1);
+		vertices[3] = glm::vec2(-1, 1);
+
+		glGenBuffers(1, &light_quad_mesh_.vertex_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, light_quad_mesh_.vertex_vbo);
+		glBufferData(GL_ARRAY_BUFFER,
+			vertices.size() * sizeof(glm::vec2),
+			vertices.data(),
+			GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glGenVertexArrays(1, &light_quad_mesh_.vao);
+		glBindVertexArray(light_quad_mesh_.vao);
+		glBindBuffer(GL_ARRAY_BUFFER, light_quad_mesh_.vertex_vbo);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,
+			sizeof(glm::vec2), 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+
+	//sphere (point light)
+	{
+		tsl::IndexedMesh mesh;
+		tsl::CreateSphere(1.f, 12, &mesh);
+		tsl::ConvertPolygonsToTriangles(&mesh);
+
+		light_sphere_mesh_.element_count = mesh.index_array.size();
+
+		glGenBuffers(1, &light_sphere_mesh_.vertex_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, light_sphere_mesh_.vertex_vbo);
+		glBufferData(GL_ARRAY_BUFFER,
+			mesh.vertex_array.size() * sizeof(glm::vec3),
+			mesh.vertex_array.data(),
+			GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glGenBuffers(1, &light_sphere_mesh_.element_vbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, light_sphere_mesh_.element_vbo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			mesh.index_array.size() * sizeof(unsigned int),
+			mesh.index_array.data(),
+			GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		glGenVertexArrays(1, &light_sphere_mesh_.vao);
+		glBindVertexArray(light_sphere_mesh_.vao);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, light_sphere_mesh_.element_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, light_sphere_mesh_.vertex_vbo);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+
+	//cone (spot light)...ideally, however im using a sphere instead and checking in the FS if fragment is within the cone
+	{
+		tsl::IndexedMesh mesh;
+		tsl::CreateCone(1.f, 1.f, 12, &mesh);
+		tsl::ConvertPolygonsToTriangles(&mesh);
+
+		light_cone_mesh_.element_count = mesh.index_array.size();
+
+		glGenBuffers(1, &light_cone_mesh_.vertex_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, light_cone_mesh_.vertex_vbo);
+		glBufferData(GL_ARRAY_BUFFER,
+			mesh.vertex_array.size() * sizeof(glm::vec3),
+			mesh.vertex_array.data(),
+			GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glGenBuffers(1, &light_cone_mesh_.element_vbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, light_cone_mesh_.element_vbo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			mesh.index_array.size() * sizeof(unsigned int),
+			mesh.index_array.data(),
+			GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		glGenVertexArrays(1, &light_cone_mesh_.vao);
+		glBindVertexArray(light_cone_mesh_.vao);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, light_cone_mesh_.element_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, light_cone_mesh_.vertex_vbo);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
+			sizeof(glm::vec3), 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+
+}
+
 GLuint MyView::getVertexShader(std::string file){
 
 	GLint compile_status = 0;
@@ -107,6 +210,10 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	std::vector<SceneModel::Mesh> meshes = SceneModel::GeometryBuilder().getAllMeshes();
 	std::vector<SceneModel::Instance> instances = scene_->getAllInstances();
 
+	spotLightCount_ = scene_->getAllSpotLights().size();
+	pointLightCount_ = scene_->getAllPointLights().size();
+	directionalLightCount_ = scene_->getAllDirectionalLights().size();
+
 	Mesh mesh;
 	//for each mesh
 	for (int i = 0; i < meshes.size(); i++)
@@ -139,7 +246,6 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 			vertexData.push_back(v);
 		}
 
-
 		glGenBuffers(1, &mesh.vertex_data_vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, mesh.vertex_data_vbo);
 		glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(vertex), vertexData.data(), GL_STATIC_DRAW);
@@ -165,14 +271,14 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		std::vector<instanceData> instancesData;
+		std::vector<InstanceData> instancesData;
 
 		mesh.instanceIDs.clear();
 
 		for (int x = 0; x < instances.size(); x++){
 			if (instances[x].getMeshId() == meshes[i].getId()){
 
-				instanceData id;
+				InstanceData id;
 				id.xForm = glm::mat4(instances[x].getTransformationMatrix());
 				id.matColour = (float)instances[x].getMaterialId() - 200;
 				instancesData.push_back(id);
@@ -186,16 +292,16 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		//instanced data
 		glGenBuffers(1, &mesh.instance_data_vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, mesh.instance_data_vbo);
-		glBufferData(GL_ARRAY_BUFFER, numInstances * sizeof(instanceData), instancesData.data(), GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, numInstances * sizeof(InstanceData), instancesData.data(), GL_STREAM_DRAW);
 
 		glEnableVertexAttribArray(MATERIAL_COLOUR);
-		glVertexAttribPointer(MATERIAL_COLOUR, 1, GL_FLOAT, GL_FALSE, sizeof(instanceData), TGL_BUFFER_OFFSET_OF(instanceData, matColour));
+		glVertexAttribPointer(MATERIAL_COLOUR, 1, GL_FLOAT, GL_FALSE, sizeof(InstanceData), TGL_BUFFER_OFFSET_OF(InstanceData, matColour));
 		glVertexAttribDivisor(MATERIAL_COLOUR, 1);
 
 		//mat4 needs to be passed as 4 lots of vec4s
 		for (int n = 0; n < 4; n++){
 			glEnableVertexAttribArray(X_FORM + n);
-			glVertexAttribPointer(X_FORM + n, 4, GL_FLOAT, GL_FALSE, sizeof(instanceData), TGL_BUFFER_OFFSET_OF(instanceData, xForm) + (n * vec4Size));
+			glVertexAttribPointer(X_FORM + n, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), TGL_BUFFER_OFFSET_OF(InstanceData, xForm) + (n * vec4Size));
 			glVertexAttribDivisor(X_FORM + n, 1);
 		}
 
@@ -207,8 +313,9 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	glEnable(GL_CULL_FACE);
 	glClearColor(0.f, 0.f, 0.25f, 0.f);
 
-	auto mats = scene_->getAllMaterials();
+	std::vector<SceneModel::Material> mats = scene_->getAllMaterials();
 	
+	//load the materials ubo data
 	std::vector<Material> materials;
 	for (int i = 0; i < mats.size(); i++){
 		
@@ -220,6 +327,26 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		materials.push_back(m);
 	}
 
+	//load the point light ubo data
+	std::vector<SceneModel::PointLight> pls = scene_->getAllPointLights();
+	std::vector<PointLight> pointLights;
+	for (int i = 0; i < pointLightCount_; i++){
+
+		glm::mat4 xform = glm::mat4();
+		float s = pls[i].getRange();
+		glm::vec3 pos = pls[i].getPosition();
+
+		//scale and transform light souce to the correct position and size
+		xform = glm::translate(xform, pos);
+		xform = glm::scale(xform, glm::vec3(s, s, s));
+
+		PointLight pl;
+		pl.intensity = pls[i].getIntensity();
+		pl.xForm = xform;
+
+		pointLights.push_back(pl);
+	}
+
 	//unniform buffer stuff
 	glGenBuffers(1, &perFrame_ubo_);
 	glBindBuffer(GL_UNIFORM_BUFFER, perFrame_ubo_);
@@ -229,9 +356,9 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	glBindBuffer(GL_UNIFORM_BUFFER, material_ubo_);
 	glBufferData(GL_UNIFORM_BUFFER, materials.size() * sizeof(Material), materials.data(), GL_STATIC_DRAW);
 
-	glGenBuffers(1, &perLight_ubo_);
-	glBindBuffer(GL_UNIFORM_BUFFER, perLight_ubo_);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PerLightUniforms), nullptr, GL_STREAM_DRAW);
+	glGenBuffers(1, &pointLight_ubo_);
+	glBindBuffer(GL_UNIFORM_BUFFER, pointLight_ubo_);
+	glBufferData(GL_UNIFORM_BUFFER, pointLightCount_ * sizeof(PointLight), pointLights.data(), GL_STREAM_DRAW);
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, perFrame_ubo_);
 	glUniformBlockBinding(shaderPrograms_[PRE_SHADER], glGetUniformBlockIndex(shaderPrograms_[PRE_SHADER], "PerFrameUniforms"), 0);
@@ -240,8 +367,8 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	glUniformBlockBinding(shaderPrograms_[GLOBAL_LIGHT], glGetUniformBlockIndex(shaderPrograms_[GLOBAL_LIGHT], "MaterialUniforms"), 1);
 	glUniformBlockBinding(shaderPrograms_[POINT_LIGHT], glGetUniformBlockIndex(shaderPrograms_[POINT_LIGHT], "MaterialUniforms"), 1);
 
-	//glBindBufferBase(GL_UNIFORM_BUFFER, 1, perLight_ubo_);
-	//glUniformBlockBinding(shaderPrograms_[LIGHT_SHADER], glGetUniformBlockIndex(shaderPrograms_[LIGHT_SHADER], "PerLightUniforms"), 1);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 2, pointLight_ubo_);
+	glUniformBlockBinding(shaderPrograms_[POINT_LIGHT], glGetUniformBlockIndex(shaderPrograms_[POINT_LIGHT], "PointLightUniforms"), 2);
 
 	//http://stackoverflow.com/questions/9155044/opengl-uniform-buffers
 
@@ -339,109 +466,6 @@ windowViewDidStop(std::shared_ptr<tygra::Window> window)
 {
 }
 
-void MyView::generateLightMeshes()
-{
-	//full screen quad (directional / ambient lighting)
-	{
-		std::vector<glm::vec2> vertices(4);
-		vertices[0] = glm::vec2(-1, -1);
-		vertices[1] = glm::vec2(1, -1);
-		vertices[2] = glm::vec2(1, 1);
-		vertices[3] = glm::vec2(-1, 1);
-
-		glGenBuffers(1, &light_quad_mesh_.vertex_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, light_quad_mesh_.vertex_vbo);
-		glBufferData(GL_ARRAY_BUFFER,
-			vertices.size() * sizeof(glm::vec2),
-			vertices.data(),
-			GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glGenVertexArrays(1, &light_quad_mesh_.vao);
-		glBindVertexArray(light_quad_mesh_.vao);
-		glBindBuffer(GL_ARRAY_BUFFER, light_quad_mesh_.vertex_vbo);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,
-			sizeof(glm::vec2), 0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-	}
-
-	//sphere (point light)
-	{
-		tsl::IndexedMesh mesh;
-		tsl::CreateSphere(1.f, 12, &mesh);
-		tsl::ConvertPolygonsToTriangles(&mesh);
-
-		light_sphere_mesh_.element_count = mesh.index_array.size();
-
-		glGenBuffers(1, &light_sphere_mesh_.vertex_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, light_sphere_mesh_.vertex_vbo);
-		glBufferData(GL_ARRAY_BUFFER,
-			mesh.vertex_array.size() * sizeof(glm::vec3),
-			mesh.vertex_array.data(),
-			GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glGenBuffers(1, &light_sphere_mesh_.element_vbo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, light_sphere_mesh_.element_vbo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			mesh.index_array.size() * sizeof(unsigned int),
-			mesh.index_array.data(),
-			GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-		glGenVertexArrays(1, &light_sphere_mesh_.vao);
-		glBindVertexArray(light_sphere_mesh_.vao);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, light_sphere_mesh_.element_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, light_sphere_mesh_.vertex_vbo);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
-
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-	}
-
-	//cone (spot light)
-	{
-		tsl::IndexedMesh mesh;
-		tsl::CreateCone(1.f, 1.f, 12, &mesh);
-		tsl::ConvertPolygonsToTriangles(&mesh);
-
-		light_cone_mesh_.element_count = mesh.index_array.size();
-
-		glGenBuffers(1, &light_cone_mesh_.vertex_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, light_cone_mesh_.vertex_vbo);
-		glBufferData(GL_ARRAY_BUFFER,
-			mesh.vertex_array.size() * sizeof(glm::vec3),
-			mesh.vertex_array.data(),
-			GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glGenBuffers(1, &light_cone_mesh_.element_vbo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, light_cone_mesh_.element_vbo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			mesh.index_array.size() * sizeof(unsigned int),
-			mesh.index_array.data(),
-			GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-		glGenVertexArrays(1, &light_cone_mesh_.vao);
-		glBindVertexArray(light_cone_mesh_.vao);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, light_cone_mesh_.element_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, light_cone_mesh_.vertex_vbo);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
-			sizeof(glm::vec3), 0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-	}
-
-}
-
 void MyView::
 windowViewRender(std::shared_ptr<tygra::Window> window)
 {
@@ -457,7 +481,7 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 		for (int j = 0; j < meshes_[i].instanceIDs.size(); j++){
 			glm::mat4 m = glm::mat4(scene_->getInstanceById(meshes_[i].instanceIDs[j]).getTransformationMatrix());
 
-			int offset = sizeof(float) + (j * sizeof(instanceData));
+			int offset = sizeof(float) + (j * sizeof(InstanceData));
 
 			glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(glm::mat4), &m);
 		}
@@ -557,7 +581,7 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
 
-	////point lights
+	//point lights
 	program = shaderPrograms_[POINT_LIGHT];
 	glUseProgram(program);
 
@@ -570,33 +594,9 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	matColTex = glGetUniformLocation(program, "sampler_world_matColour");
 	glUniform1i(matColTex, 2);
 
-	for (int i = 0; i < pointLights.size(); i++){
-		glm::mat4 xform = glm::mat4();
-		float s = pointLights[i].getRange();
-
-		//scale and transform light souce to the correct position and size
-		glm::vec3 pos = pointLights[i].getPosition();
-		glm::vec3 intensity = pointLights[i].getIntensity();
-
-		xform = glm::translate(xform, pos);
-		xform = glm::scale(xform, glm::vec3(s, s, s));
-
-		GLuint modelXform = glGetUniformLocation(program, "modelXform");
-		glUniformMatrix4fv(modelXform, 1, GL_FALSE, glm::value_ptr(xform));
-
-		GLuint lightPos = glGetUniformLocation(program, "lightPosition");
-		glUniform3f(lightPos, pos.x, pos.y, pos.z);
-
-		GLuint lightRange = glGetUniformLocation(program, "lightRange");
-		glUniform1f(lightRange, s);
-
-		GLuint lightIntensity = glGetUniformLocation(program, "lightIntensity");
-		glUniform3f(lightIntensity, intensity.x, intensity.y, intensity.z);
-
-		glBindVertexArray(light_sphere_mesh_.vao);
-		glDrawElements(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0);
-	}
-
+	//Draw lights instanced
+	glBindVertexArray(light_sphere_mesh_.vao);
+	glDrawElementsInstanced(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0, pointLightCount_);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, lbuffer_fbo_);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);

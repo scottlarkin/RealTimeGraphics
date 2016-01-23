@@ -12,7 +12,6 @@ layout (std140) uniform MaterialUniforms
 	Material materials[7];
 };
 
-
 layout (std140) uniform PerFrameUniforms
 {
 	mat4 projectionViewXform;
@@ -21,24 +20,23 @@ layout (std140) uniform PerFrameUniforms
 	vec3 cameraPos;
 };
 
+in flat vec3 lightIntensity;
+in flat vec3 lightPosition;
+in flat float lightRange;
 
 uniform sampler2DRect sampler_world_position;
 uniform sampler2DRect sampler_world_normal;
 uniform sampler2DRect sampler_world_matColour;
 
-uniform vec3 lightIntensity;
-uniform vec3 lightPosition;
-uniform float lightRange;
-uniform float light_intensity = 0.15;
-
 layout (location = 0) out vec4 reflected_light;
 
 void main(void)
 {
+
 	vec3 position = texelFetch(sampler_world_position, ivec2(gl_FragCoord.xy)).xyz;
 	vec2 normalXY = texelFetch(sampler_world_normal, ivec2(gl_FragCoord.xy)).xy;
 	vec4 matColour = texelFetch(sampler_world_matColour, ivec2(gl_FragCoord.xy));
-	
+
 	vec3 diffuse; 
 	
 	vec3 normal = vec3(normalXY.x, normalXY.y, 1-(normalXY.x+normalXY.y));

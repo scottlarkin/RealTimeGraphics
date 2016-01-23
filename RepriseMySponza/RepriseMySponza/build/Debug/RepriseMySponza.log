@@ -1,36 +1,39 @@
-﻿Build started 22/01/2016 18:34:53.
-     1>Project "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\RepriseMySponza\RepriseMySponza.vcxproj" on node 2 (Build target(s)).
+﻿Build started 23/01/2016 12:28:45.
+     1>Project "E:\GitHub\RealTimeGraphics\RepriseMySponza\RepriseMySponza\RepriseMySponza.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         E:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\external/include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"build\Debug\\" /Fd"build\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt MyView.cpp
+         E:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IE:\GitHub\RealTimeGraphics\RepriseMySponza\external/include /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"build\Debug\\" /Fd"build\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt MyController.cpp MyView.cpp
+         MyController.cpp
+         No target GL version declared, defaulting to GL 3.3
          MyView.cpp
          No target GL version declared, defaulting to GL 3.3
-     1>c:\users\scott\desktop\sponzafix\fully deferred working stencil\reprisemysponza\reprisemysponza\myview.cpp(112): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\scott\desktop\sponzafix\fully deferred working stencil\reprisemysponza\reprisemysponza\myview.cpp(123): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\scott\desktop\sponzafix\fully deferred working stencil\reprisemysponza\reprisemysponza\myview.cpp(172): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\scott\desktop\sponzafix\fully deferred working stencil\reprisemysponza\reprisemysponza\myview.cpp(213): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\scott\desktop\sponzafix\fully deferred working stencil\reprisemysponza\reprisemysponza\myview.cpp(449): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\scott\desktop\sponzafix\fully deferred working stencil\reprisemysponza\reprisemysponza\myview.cpp(453): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\scott\desktop\sponzafix\fully deferred working stencil\reprisemysponza\reprisemysponza\myview.cpp(501): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\scott\desktop\sponzafix\fully deferred working stencil\reprisemysponza\reprisemysponza\myview.cpp(542): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\scott\desktop\sponzafix\fully deferred working stencil\reprisemysponza\reprisemysponza\myview.cpp(569): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(112): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(123): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(172): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(213): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(225): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(475): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(479): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(527): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(568): warning C4018: '<' : signed/unsigned mismatch
+         Generating Code...
        Link:
-         E:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"build\Debug\RepriseMySponza.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\external\lib\Win32\v120\Debug" scenemodel.lib "tsl-vc120-mt-sg.lib" "tcf-vc120-mt-sg.lib" tygra.lib tgl.lib glfw.lib png.lib zlib.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"build\Debug\RepriseMySponza.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"build\Debug\RepriseMySponza.lib" /MACHINE:X86 build\Debug\main.obj
+         E:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"build\Debug\RepriseMySponza.exe" /INCREMENTAL /NOLOGO /LIBPATH:E:\GitHub\RealTimeGraphics\RepriseMySponza\external\lib\Win32\v120\Debug scenemodel.lib "tsl-vc120-mt-sg.lib" "tcf-vc120-mt-sg.lib" tygra.lib tgl.lib glfw.lib png.lib zlib.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"build\Debug\RepriseMySponza.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"build\Debug\RepriseMySponza.lib" /MACHINE:X86 build\Debug\main.obj
          build\Debug\MyController.obj
          build\Debug\MyView.obj
-         RepriseMySponza.vcxproj -> C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe
+         RepriseMySponza.vcxproj -> E:\GitHub\RealTimeGraphics\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe
        PostBuildEvent:
-         xcopy /E /S /I /Y "doc" "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\demo"
-         xcopy /E /S /I /Y "demo" "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\demo"
-         xcopy /Y "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe" "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\demo"
+         xcopy /E /S /I /Y "doc" "E:\GitHub\RealTimeGraphics\RepriseMySponza\demo"
+         xcopy /E /S /I /Y "demo" "E:\GitHub\RealTimeGraphics\RepriseMySponza\demo"
+         xcopy /Y "E:\GitHub\RealTimeGraphics\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe" "E:\GitHub\RealTimeGraphics\RepriseMySponza\demo"
          :VCEnd
-         0 File(s) copied
          File not found - doc
          0 File(s) copied
          File not found - demo
-         C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe
+         0 File(s) copied
+         E:\GitHub\RealTimeGraphics\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe
          1 File(s) copied
-     1>Done Building Project "C:\Users\Scott\Desktop\sponzafix\fully deferred WORKING STENCIL\RepriseMySponza\RepriseMySponza\RepriseMySponza.vcxproj" (Build target(s)).
+     1>Done Building Project "E:\GitHub\RealTimeGraphics\RepriseMySponza\RepriseMySponza\RepriseMySponza.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.39
+Time Elapsed 00:00:01.92

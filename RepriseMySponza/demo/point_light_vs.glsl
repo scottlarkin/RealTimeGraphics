@@ -1,6 +1,16 @@
 #version 330
 
+struct PointLight
+{
+	vec3 intensity;
+	float pad;
+	mat4 xform;
+};
 
+layout (std140) uniform PointLightUniforms
+{
+	PointLight lights[20];
+};
 
 layout (std140) uniform PerFrameUniforms
 {
@@ -10,12 +20,18 @@ layout (std140) uniform PerFrameUniforms
 	vec3 cameraPos;
 };
 
-
-uniform mat4 modelXform;
+out flat vec3 lightPosition;
+out flat float lightRange;
+out flat vec3 lightIntensity;
 
 layout (location = 0) in vec3 vertex_position;
 
 void main(void)
 {
-    gl_Position = projectionViewXform *  modelXform * vec4(vertex_position, 1);
+	PointLight light = lights[gl_InstanceID];
+	lightIntensity = light.intensity;
+	lightPosition = light.xform[3].xyz;
+	lightRange = length(light.xform[0].xyz);
+
+    gl_Position = projectionViewXform * light.xform * vec4(vertex_position, 1);
 }
