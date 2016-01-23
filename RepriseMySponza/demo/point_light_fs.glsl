@@ -9,7 +9,7 @@ struct Material{
 
 layout (std140) uniform MaterialUniforms
 {
-	Material materials[7];
+	Material materials[$materialCount];
 };
 
 layout (std140) uniform PerFrameUniforms
@@ -19,6 +19,7 @@ layout (std140) uniform PerFrameUniforms
 	float pad;
 	vec3 cameraPos;
 };
+
 
 in flat vec3 lightIntensity;
 in flat vec3 lightPosition;

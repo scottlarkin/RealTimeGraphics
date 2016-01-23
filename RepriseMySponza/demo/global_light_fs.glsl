@@ -9,7 +9,7 @@ struct Material{
 
 layout (std140) uniform MaterialUniforms
 {
-	Material materials[7];
+	Material materials[$materialCount];
 };
 
 layout (std140) uniform PerFrameUniforms

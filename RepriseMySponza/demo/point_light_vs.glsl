@@ -9,7 +9,7 @@ struct PointLight
 
 layout (std140) uniform PointLightUniforms
 {
-	PointLight lights[20];
+	PointLight lights[$pointLightCount];
 };
 
 layout (std140) uniform PerFrameUniforms
