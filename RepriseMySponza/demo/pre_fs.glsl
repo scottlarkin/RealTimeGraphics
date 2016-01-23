@@ -4,8 +4,6 @@
 layout (std140) uniform PerFrameUniforms
 {
 	mat4 projectionViewXform;
-	vec3 ambientColour;
-	float pad;
 	vec3 cameraPos;
 };
 

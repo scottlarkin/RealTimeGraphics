@@ -221,6 +221,7 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	addShaderProgram(GLOBAL_LIGHT, "global_light_vs.glsl", "global_light_fs.glsl");
 	addShaderProgram(SPOT_LIGHT, "spot_light_vs.glsl", "spot_light_fs.glsl");
 	addShaderProgram(POINT_LIGHT, "point_light_vs.glsl", "point_light_fs.glsl");
+	addShaderProgram(AMBIENT_LIGHT, "ambient_light_vs.glsl", "ambient_light_fs.glsl");
 
 	std::vector<SceneModel::Mesh> meshes = SceneModel::GeometryBuilder().getAllMeshes();
 	std::vector<SceneModel::Instance> instances = scene_->getAllInstances();
@@ -373,6 +374,19 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		spotLights.push_back(sl);
 	}
 
+	std::vector<DirectionalLight> directionalLights;
+	std::vector<SceneModel::DirectionalLight> dls = scene_->getAllDirectionalLights();
+	for (int i = 0; i < directionalLightCount_; i++){
+
+		DirectionalLight dl;
+
+		dl.intensity = dls[i].getIntensity();
+		dl.direction = dls[i].getDirection();
+
+		directionalLights.push_back(dl);
+	}
+
+
 	//uniform buffer stuff
 	glGenBuffers(1, &perFrame_ubo_);
 	glBindBuffer(GL_UNIFORM_BUFFER, perFrame_ubo_);
@@ -390,6 +404,10 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	glBindBuffer(GL_UNIFORM_BUFFER, spotLight_ubo_);
 	glBufferData(GL_UNIFORM_BUFFER, spotLightCount_ * sizeof(SpotLight), spotLights.data(), GL_STREAM_DRAW);
 
+	glGenBuffers(1, &directionalLight_ubo_);
+	glBindBuffer(GL_UNIFORM_BUFFER, directionalLight_ubo_);
+	glBufferData(GL_UNIFORM_BUFFER, directionalLightCount_ * sizeof(DirectionalLight), directionalLights.data(), GL_STATIC_DRAW);
+
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, perFrame_ubo_);
 	glUniformBlockBinding(shaderPrograms_[PRE_SHADER], glGetUniformBlockIndex(shaderPrograms_[PRE_SHADER], "PerFrameUniforms"), 0);
 	glUniformBlockBinding(shaderPrograms_[GLOBAL_LIGHT], glGetUniformBlockIndex(shaderPrograms_[GLOBAL_LIGHT], "PerFrameUniforms"), 0);
@@ -400,12 +418,16 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	glUniformBlockBinding(shaderPrograms_[GLOBAL_LIGHT], glGetUniformBlockIndex(shaderPrograms_[GLOBAL_LIGHT], "MaterialUniforms"), 1);
 	glUniformBlockBinding(shaderPrograms_[POINT_LIGHT], glGetUniformBlockIndex(shaderPrograms_[POINT_LIGHT], "MaterialUniforms"), 1);
 	glUniformBlockBinding(shaderPrograms_[SPOT_LIGHT], glGetUniformBlockIndex(shaderPrograms_[SPOT_LIGHT], "MaterialUniforms"), 1);
+	glUniformBlockBinding(shaderPrograms_[AMBIENT_LIGHT], glGetUniformBlockIndex(shaderPrograms_[AMBIENT_LIGHT], "MaterialUniforms"), 1);
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 2, pointLight_ubo_);
 	glUniformBlockBinding(shaderPrograms_[POINT_LIGHT], glGetUniformBlockIndex(shaderPrograms_[POINT_LIGHT], "PointLightUniforms"), 2);
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, spotLight_ubo_);
 	glUniformBlockBinding(shaderPrograms_[SPOT_LIGHT], glGetUniformBlockIndex(shaderPrograms_[SPOT_LIGHT], "SpotLightUniforms"), 3);
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, 4, directionalLight_ubo_);
+	glUniformBlockBinding(shaderPrograms_[GLOBAL_LIGHT], glGetUniformBlockIndex(shaderPrograms_[GLOBAL_LIGHT], "DirectionalLightUniforms"), 4);
 
 	//http://stackoverflow.com/questions/9155044/opengl-uniform-buffers
 
@@ -496,6 +518,37 @@ int height)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	//only need to set this once
+	glUseProgram(shaderPrograms_[AMBIENT_LIGHT]);
+	GLuint ambient = glGetUniformLocation(shaderPrograms_[AMBIENT_LIGHT], "ambientLight");
+	glUniform3fv(ambient, 1, glm::value_ptr(scene_->getAmbientLightIntensity()));
+
+	//bind textures 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_position_tex_);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_normal_tex_);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_matColour_tex_);
+
+	for (int i = 1; i < MAX_SHADERS; i++){
+
+		GLuint program = shaderPrograms_[i];
+
+		glUseProgram(program);
+
+		GLint posTex = glGetUniformLocation(program, "sampler_world_position");
+		glUniform1i(posTex, 0);
+
+		GLint normTex = glGetUniformLocation(program, "sampler_world_normal");
+		glUniform1i(normTex, 1);
+
+		GLint matColTex = glGetUniformLocation(program, "sampler_world_matColour");
+		glUniform1i(matColTex, 2);
+	}
+
 }
 
 void MyView::
@@ -503,13 +556,8 @@ windowViewDidStop(std::shared_ptr<tygra::Window> window)
 {
 }
 
-void MyView::
-windowViewRender(std::shared_ptr<tygra::Window> window)
+void MyView::updateBuffers()
 {
-	assert(scene_ != nullptr);
-
-	GLuint program;
-
 	//update the xform of instances each frame because some move around a bit
 	for (int i = 0; i < meshes_.size(); i++)
 	{
@@ -528,12 +576,12 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	glBindBuffer(GL_UNIFORM_BUFFER, pointLight_ubo_);
 	std::vector<SceneModel::PointLight> pls = scene_->getAllPointLights();
 	for (int i = 0; i < pointLightCount_; i++){
-		
+
 		//no need to recalc the whole transform matrix,
 		//instead, offset into the matrix structure and replace the last row with position data
 		glm::vec4 pos = glm::vec4(pls[i].getPosition(), 1);
 
-		int offset = i * sizeof(PointLight) + sizeof(float) + sizeof(glm::vec3) + (3*sizeof(glm::vec4));
+		int offset = i * sizeof(PointLight) + sizeof(float) + sizeof(glm::vec3) + (3 * sizeof(glm::vec4));
 
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, sizeof(glm::vec4), &pos);
 	}
@@ -568,26 +616,30 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	PerFrameUniforms perFrameUniforms;
 	//do the projection view calculation here or in vertex shader....?! profile this
 	perFrameUniforms.projectionViewXform = projection_xform_ * view_xform;
-	perFrameUniforms.ambientColour = scene_->getAmbientLightIntensity(); //dont need per frame
 	perFrameUniforms.cameraPos = camPos;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, perFrame_ubo_);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(PerFrameUniforms), &perFrameUniforms);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void MyView::
+windowViewRender(std::shared_ptr<tygra::Window> window)
+{
+	assert(scene_ != nullptr);
+
+	updateBuffers();
+
+	GLuint program;
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gbuffer_fbo_);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
-
 	glDisable(GL_BLEND);
-
-	std::vector<SceneModel::PointLight> pointLights = scene_->getAllPointLights();
-	std::vector<SceneModel::SpotLight> spotLights = scene_->getAllSpotLights();
 
 	//G-buffer geometry pass
 	glCullFace(GL_BACK);
@@ -615,49 +667,28 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
 
-	auto SetSamplerUniforms = [&]{
-		GLint posTex = glGetUniformLocation(program, "sampler_world_position");
-		glUniform1i(posTex, 0);
+	auto useProgram = [&](SHADER_TYPE t){
 
-		GLint normTex = glGetUniformLocation(program, "sampler_world_normal");
-		glUniform1i(normTex, 1);
-
-		GLint matColTex = glGetUniformLocation(program, "sampler_world_matColour");
-		glUniform1i(matColTex, 2);
+		program = shaderPrograms_[t];
+		glUseProgram(program);
 	};
-	
+
 	//global lights
-	program = shaderPrograms_[GLOBAL_LIGHT];
-	glUseProgram(program);
-	std::vector<SceneModel::DirectionalLight> dLights = scene_->getAllDirectionalLights();
-
-	SetSamplerUniforms();
-
-	//bind textures to tex units 0 and 1
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_position_tex_);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_normal_tex_);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_matColour_tex_);
-
+	//bind quad vao, which is used by all global lights
 	glBindVertexArray(light_quad_mesh_.vao);
-	for (int i = 0; i < dLights.size(); i++){
 
-		glm::vec3 dir = dLights[i].getDirection();
+	//ambient lighting
+	useProgram(AMBIENT_LIGHT);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-		GLuint lightDir = glGetUniformLocation(program, "light_direction");
-		glUniform3fv(lightDir, 1, glm::value_ptr(dir));
-
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	}
-
+	//enable and configure blender
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
 
+	//directional lights
+	useProgram(GLOBAL_LIGHT);
+	glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, directionalLightCount_);
 
 	//draw backs/cull front so lights are visible when camera is inside light volume
 	glCullFace(GL_FRONT);
@@ -667,19 +698,14 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	//glEnable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_GREATER);
 
-	program = shaderPrograms_[POINT_LIGHT];
-	glUseProgram(program);
-
-	SetSamplerUniforms();
-
-	//Draw lights instanced
+	//bind the sphere mesh, used by point and spot lights
 	glBindVertexArray(light_sphere_mesh_.vao);
+
+	useProgram(POINT_LIGHT);
 	glDrawElementsInstanced(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0, pointLightCount_);
 
 	//spot lights
-	program = shaderPrograms_[SPOT_LIGHT];
-	glUseProgram(program);
-	SetSamplerUniforms();
+	useProgram(SPOT_LIGHT);
 	glDrawElementsInstanced(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0, spotLightCount_);
 
 	//blit l-buffer to screen

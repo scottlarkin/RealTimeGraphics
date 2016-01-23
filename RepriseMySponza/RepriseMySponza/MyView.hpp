@@ -39,7 +39,8 @@ private:
 		SPOT_LIGHT = 2,
 		POINT_LIGHT = 3,
 		POST_SHADER = 4,
-		MAX_SHADERS = POST_SHADER + 1
+		AMBIENT_LIGHT = 5,
+		MAX_SHADERS = AMBIENT_LIGHT + 1
 	};
 
 	enum VERTEX_ATTRIBUTE{
@@ -86,6 +87,13 @@ private:
 		glm::mat4 xForm;
 	};
 
+	struct DirectionalLight
+	{
+		glm::vec3 direction;
+		float pada;
+		glm::vec3 intensity;
+		float padb;
+	};
 
 	struct SpotLight
 	{
@@ -124,6 +132,8 @@ private:
 
 	void generateLightMeshes();
 
+	void updateBuffers();
+
 	struct Mesh
 	{
 		GLuint element_vbo;
@@ -144,8 +154,6 @@ private:
 	struct PerFrameUniforms
 	{
 		glm::mat4 projectionViewXform;
-		glm::vec3 ambientColour;
-		float pad;
 		glm::vec3 cameraPos;
 	};
 
@@ -162,6 +170,7 @@ private:
 	GLuint material_ubo_;
 	GLuint pointLight_ubo_;
 	GLuint spotLight_ubo_;
+	GLuint directionalLight_ubo_;
 
 	//deferred shading stuff
 	GLuint gbuffer_position_tex_;
@@ -174,8 +183,7 @@ private:
 
 	GLuint gbuffer_depth_rbo_;
 	GLuint gbuffer_fbo_;
-
-
+	
 	std::vector<Mesh> meshes_;
 
 	glm::vec3 upDir_;

@@ -15,8 +15,6 @@ layout (std140) uniform MaterialUniforms
 layout (std140) uniform PerFrameUniforms
 {
 	mat4 projectionViewXform;
-	vec3 ambientColour;
-	float pad;
 	vec3 cameraPos;
 };
 
@@ -24,9 +22,8 @@ uniform sampler2DRect sampler_world_position;
 uniform sampler2DRect sampler_world_normal;
 uniform sampler2DRect sampler_world_matColour;
 
-uniform vec3 light_direction = vec3(-3, -2, 1);
-uniform float light_intensity = 0.15;
-uniform vec3 ambientLight;
+in flat vec3 lightDirection;
+in flat vec3 lightIntensity;
 
 layout (location = 0) out vec4 reflected_light;
 
@@ -40,9 +37,9 @@ void main(void)
 	
 	int matId = int(matColour.x);
 	
-	vec3 diffuse = vec3(1,1,1) * materials[matId].dColour;
+	vec3 diffuse = materials[matId].dColour * lightIntensity;
 
-	float NdotL = max(dot(normalize(normal.xyz),light_direction),0.0);
+	float NdotL = max(dot(normalize(normal.xyz), lightDirection),0.0);
 	
 	diffuse = diffuse * NdotL;
 
