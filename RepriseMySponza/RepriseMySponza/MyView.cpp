@@ -205,16 +205,8 @@ void MyView::addShaderProgram(SHADER_TYPE type, std::string vsFile, std::string 
 	shaderPrograms_[type] = program;
 }
 
-void MyView::
-windowViewWillStart(std::shared_ptr<tygra::Window> window)
+void MyView::loadShaders()
 {
-	assert(scene_ != nullptr);
-
-	materialCount_ = scene_->getAllMaterials().size();
-	spotLightCount_ = scene_->getAllSpotLights().size();
-	pointLightCount_ = scene_->getAllPointLights().size();
-	directionalLightCount_ = scene_->getAllDirectionalLights().size();
-
 	shaderPrograms_.resize(MAX_SHADERS);
 
 	addShaderProgram(PRE_SHADER, "pre_vs.glsl", "pre_fs.glsl");
@@ -222,10 +214,15 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	addShaderProgram(SPOT_LIGHT, "spot_light_vs.glsl", "spot_light_fs.glsl");
 	addShaderProgram(POINT_LIGHT, "point_light_vs.glsl", "point_light_fs.glsl");
 	addShaderProgram(AMBIENT_LIGHT, "ambient_light_vs.glsl", "ambient_light_fs.glsl");
+}
+void MyView::loadMeshes()
+{
+
+	generateLightMeshes();
 
 	std::vector<SceneModel::Mesh> meshes = SceneModel::GeometryBuilder().getAllMeshes();
 	std::vector<SceneModel::Instance> instances = scene_->getAllInstances();
-	
+
 	Mesh mesh;
 	//for each mesh
 	for (int i = 0; i < meshes.size(); i++)
@@ -322,12 +319,11 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		meshes_.push_back(mesh);
 	}
 
-	glEnable(GL_CULL_FACE);
-	glClearColor(0.f, 0.f, 0.25f, 0.f);
-
-	std::vector<SceneModel::Material> mats = scene_->getAllMaterials();
-
+}
+void MyView::loadUniformBuffers()
+{
 	//load the materials ubo data
+	std::vector<SceneModel::Material> mats = scene_->getAllMaterials();
 	std::vector<Material> materials;
 	for (int i = 0; i < mats.size(); i++){
 
@@ -359,6 +355,7 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		pointLights.push_back(pl);
 	}
 
+	//load spot light ubo
 	std::vector<SpotLight> spotLights;
 	std::vector<SceneModel::SpotLight> sls = scene_->getAllSpotLights();
 	for (int i = 0; i < spotLightCount_; i++){
@@ -374,6 +371,7 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		spotLights.push_back(sl);
 	}
 
+	//load directional light ubo
 	std::vector<DirectionalLight> directionalLights;
 	std::vector<SceneModel::DirectionalLight> dls = scene_->getAllDirectionalLights();
 	for (int i = 0; i < directionalLightCount_; i++){
@@ -386,8 +384,7 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		directionalLights.push_back(dl);
 	}
 
-
-	//uniform buffer stuff
+	//generate the buffers
 	glGenBuffers(1, &perFrame_ubo_);
 	glBindBuffer(GL_UNIFORM_BUFFER, perFrame_ubo_);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(PerFrameUniforms), nullptr, GL_DYNAMIC_DRAW);
@@ -430,6 +427,26 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	glUniformBlockBinding(shaderPrograms_[GLOBAL_LIGHT], glGetUniformBlockIndex(shaderPrograms_[GLOBAL_LIGHT], "DirectionalLightUniforms"), 4);
 
 	//http://stackoverflow.com/questions/9155044/opengl-uniform-buffers
+}
+
+void MyView::
+windowViewWillStart(std::shared_ptr<tygra::Window> window)
+{
+	assert(scene_ != nullptr);
+
+	//anything that is done once on load goes here
+
+	materialCount_ = scene_->getAllMaterials().size();
+	spotLightCount_ = scene_->getAllSpotLights().size();
+	pointLightCount_ = scene_->getAllPointLights().size();
+	directionalLightCount_ = scene_->getAllDirectionalLights().size();
+
+	loadShaders();
+	loadMeshes();
+	loadUniformBuffers();
+
+	glEnable(GL_CULL_FACE);
+	glClearColor(0.f, 0.f, 0.25f, 0.f);
 
 	//GBUFER TEXTURES
 	glGenTextures(1, &gbuffer_position_tex_);
@@ -442,7 +459,10 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	glGenFramebuffers(1, &gbuffer_fbo_);
 	glGenRenderbuffers(1, &gbuffer_depth_rbo_);
 
-	generateLightMeshes();
+	//only need to set this once
+	glUseProgram(shaderPrograms_[AMBIENT_LIGHT]);
+	GLuint ambient = glGetUniformLocation(shaderPrograms_[AMBIENT_LIGHT], "ambientLight");
+	glUniform3fv(ambient, 1, glm::value_ptr(scene_->getAmbientLightIntensity()));
 }
 
 void MyView::
@@ -450,6 +470,9 @@ windowViewDidReset(std::shared_ptr<tygra::Window> window,
 int width,
 int height)
 {
+
+	//anything that needs updated when the screen size changes
+
 	glViewport(0, 0, width, height);
 
 	width_ = width;
@@ -466,10 +489,8 @@ int height)
 	aspect_ratio_ = viewport_size[2] / (float)viewport_size[3];
 	projection_xform_ = glm::perspective(fov, aspect_ratio_, near, far);
 
-
 	//deffered stuff
 	//g-buffer
-
 	glBindFramebuffer(GL_FRAMEBUFFER, gbuffer_fbo_);
 	//position
 	//store full-fat position 
@@ -517,11 +538,6 @@ int height)
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	//only need to set this once
-	glUseProgram(shaderPrograms_[AMBIENT_LIGHT]);
-	GLuint ambient = glGetUniformLocation(shaderPrograms_[AMBIENT_LIGHT], "ambientLight");
-	glUniform3fv(ambient, 1, glm::value_ptr(scene_->getAmbientLightIntensity()));
 
 	//bind textures 
 	glActiveTexture(GL_TEXTURE0);
@@ -624,15 +640,9 @@ void MyView::updateBuffers()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void MyView::
-windowViewRender(std::shared_ptr<tygra::Window> window)
+
+void MyView::geometryPass()
 {
-	assert(scene_ != nullptr);
-
-	updateBuffers();
-
-	GLuint program;
-
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gbuffer_fbo_);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -647,7 +657,7 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	glStencilFunc(GL_ALWAYS, 0, ~0);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
 
-	program = shaderPrograms_[PRE_SHADER];
+	GLuint program = shaderPrograms_[PRE_SHADER];
 	glUseProgram(program);
 
 	Mesh mesh;
@@ -658,38 +668,49 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 		glBindVertexArray(mesh.vao);
 		glDrawElementsInstanced(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, 0, mesh.instanceIDs.size());
 	}
+}
 
+void MyView::ambientPass()
+{
 	glStencilFunc(GL_NOTEQUAL, 0, ~0);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-	//lighting passes
 	glBindFramebuffer(GL_FRAMEBUFFER, lbuffer_fbo_);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
-
-	auto useProgram = [&](SHADER_TYPE t){
-
-		program = shaderPrograms_[t];
-		glUseProgram(program);
-	};
 
 	//global lights
 	//bind quad vao, which is used by all global lights
 	glBindVertexArray(light_quad_mesh_.vao);
 
 	//ambient lighting
-	useProgram(AMBIENT_LIGHT);
+	glUseProgram(shaderPrograms_[AMBIENT_LIGHT]);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
+}
+
+void MyView::directionalLightPass()
+{
 	//enable and configure blender
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
 
 	//directional lights
-	useProgram(GLOBAL_LIGHT);
-	glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, directionalLightCount_);
+	glUseProgram(shaderPrograms_[GLOBAL_LIGHT]);
 
+	glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, directionalLightCount_);
+}
+
+void MyView::spotlightPass()
+{
+	//spot lights
+	glUseProgram(shaderPrograms_[SPOT_LIGHT]);
+	glDrawElementsInstanced(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0, spotLightCount_);
+}
+
+void MyView::pointlightPass()
+{
 	//draw backs/cull front so lights are visible when camera is inside light volume
 	glCullFace(GL_FRONT);
 
@@ -701,12 +722,24 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	//bind the sphere mesh, used by point and spot lights
 	glBindVertexArray(light_sphere_mesh_.vao);
 
-	useProgram(POINT_LIGHT);
+	glUseProgram(shaderPrograms_[POINT_LIGHT]);
 	glDrawElementsInstanced(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0, pointLightCount_);
+}
 
-	//spot lights
-	useProgram(SPOT_LIGHT);
-	glDrawElementsInstanced(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0, spotLightCount_);
+void MyView::
+windowViewRender(std::shared_ptr<tygra::Window> window)
+{
+	assert(scene_ != nullptr);
+
+	updateBuffers(); //update positions of meshes and light sources
+
+	geometryPass(); //must be done first to write to g-buffer
+
+	ambientPass();
+	directionalLightPass(); //must be done after ambient and before point, as the quad vao is bound in ambient pass
+	
+	pointlightPass();
+	spotlightPass(); //must be done after point lights, as the sphere vao is bound in point light pass
 
 	//blit l-buffer to screen
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, lbuffer_fbo_);

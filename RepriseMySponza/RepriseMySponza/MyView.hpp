@@ -132,6 +132,16 @@ private:
 
 	void generateLightMeshes();
 
+	void loadShaders();
+	void loadMeshes();
+	void loadUniformBuffers();
+
+	void geometryPass();
+	void ambientPass();
+	void directionalLightPass();
+	void spotlightPass();
+	void pointlightPass();
+
 	void updateBuffers();
 
 	struct Mesh
