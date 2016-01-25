@@ -1,34 +1,54 @@
-﻿Build started 24/01/2016 13:34:20.
-     1>Project "E:\GitHub\RealTimeGraphics\RepriseMySponza\RepriseMySponza\RepriseMySponza.vcxproj" on node 2 (Build target(s)).
+﻿Build started 25/01/2016 19:32:47.
+     1>Project "H:\RealTimeGraphics\RepriseMySponza\RepriseMySponza\RepriseMySponza.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         E:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IE:\GitHub\RealTimeGraphics\RepriseMySponza\external/include /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"build\Debug\\" /Fd"build\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt MyView.cpp
+         E:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IH:\RealTimeGraphics\RepriseMySponza\external/include /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"build\Debug\\" /Fd"build\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt MyController.cpp MyView.cpp
+         MyController.cpp
+         No target GL version declared, defaulting to GL 3.3
+     1>c:\program files (x86)\windows kits\8.1\include\shared\minwindef.h(127): warning C4005: 'CALLBACK' : macro redefinition
+                 h:\realtimegraphics\reprisemysponza\external\include\tgl\tgl.h(214) : see previous definition of 'CALLBACK'
+     1>c:\program files (x86)\windows kits\8.1\include\shared\minwindef.h(130): warning C4005: 'APIENTRY' : macro redefinition
+                 h:\realtimegraphics\reprisemysponza\external\include\tgl\tgl.h(179) : see previous definition of 'APIENTRY'
+     1>c:\program files (x86)\windows kits\8.1\include\um\wingdi.h(32): warning C4005: 'WINGDIAPI' : macro redefinition
+                 h:\realtimegraphics\reprisemysponza\external\include\tgl\tgl.h(190) : see previous definition of 'WINGDIAPI'
          MyView.cpp
          No target GL version declared, defaulting to GL 3.3
-     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(228): warning C4018: '<' : signed/unsigned mismatch
-     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(239): warning C4018: '<' : signed/unsigned mismatch
-     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(287): warning C4018: '<' : signed/unsigned mismatch
-     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(328): warning C4018: '<' : signed/unsigned mismatch
-     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(578): warning C4018: '<' : signed/unsigned mismatch
-     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(582): warning C4018: '<' : signed/unsigned mismatch
-     1>e:\github\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(665): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\program files (x86)\windows kits\8.1\include\shared\minwindef.h(127): warning C4005: 'CALLBACK' : macro redefinition
+                 h:\realtimegraphics\reprisemysponza\external\include\tgl\tgl.h(214) : see previous definition of 'CALLBACK'
+     1>c:\program files (x86)\windows kits\8.1\include\shared\minwindef.h(130): warning C4005: 'APIENTRY' : macro redefinition
+                 h:\realtimegraphics\reprisemysponza\external\include\tgl\tgl.h(179) : see previous definition of 'APIENTRY'
+     1>c:\program files (x86)\windows kits\8.1\include\um\wingdi.h(32): warning C4005: 'WINGDIAPI' : macro redefinition
+                 h:\realtimegraphics\reprisemysponza\external\include\tgl\tgl.h(190) : see previous definition of 'WINGDIAPI'
+     1>h:\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(233): warning C4018: '<' : signed/unsigned mismatch
+     1>h:\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(244): warning C4018: '<' : signed/unsigned mismatch
+     1>h:\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(292): warning C4018: '<' : signed/unsigned mismatch
+     1>h:\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(333): warning C4018: '<' : signed/unsigned mismatch
+     1>h:\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(474): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\program files (x86)\microsoft visual studio 12.0\vc\include\stdio.h(211) : see declaration of 'fopen'
+     1>h:\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(496): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\program files (x86)\microsoft visual studio 12.0\vc\include\stdio.h(211) : see declaration of 'fopen'
+     1>h:\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(765): warning C4018: '<' : signed/unsigned mismatch
+     1>h:\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(769): warning C4018: '<' : signed/unsigned mismatch
+     1>h:\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(852): warning C4018: '<' : signed/unsigned mismatch
+     1>h:\realtimegraphics\reprisemysponza\reprisemysponza\myview.cpp(865): warning C4305: 'argument' : truncation from 'double' to 'GLfloat'
+         Generating Code...
        Link:
-         E:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"build\Debug\RepriseMySponza.exe" /INCREMENTAL /NOLOGO /LIBPATH:E:\GitHub\RealTimeGraphics\RepriseMySponza\external\lib\Win32\v120\Debug scenemodel.lib "tsl-vc120-mt-sg.lib" "tcf-vc120-mt-sg.lib" tygra.lib tgl.lib glfw.lib png.lib zlib.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"build\Debug\RepriseMySponza.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"build\Debug\RepriseMySponza.lib" /MACHINE:X86 build\Debug\main.obj
+         E:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"build\Debug\RepriseMySponza.exe" /INCREMENTAL /NOLOGO /LIBPATH:H:\RealTimeGraphics\RepriseMySponza\external\lib\Win32\v120\Debug scenemodel.lib "tsl-vc120-mt-sg.lib" "tcf-vc120-mt-sg.lib" tygra.lib tgl.lib glfw.lib png.lib zlib.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"build\Debug\RepriseMySponza.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"build\Debug\RepriseMySponza.lib" /MACHINE:X86 build\Debug\main.obj
          build\Debug\MyController.obj
          build\Debug\MyView.obj
-         RepriseMySponza.vcxproj -> E:\GitHub\RealTimeGraphics\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe
+         RepriseMySponza.vcxproj -> H:\RealTimeGraphics\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe
        PostBuildEvent:
-         xcopy /E /S /I /Y "doc" "E:\GitHub\RealTimeGraphics\RepriseMySponza\demo"
-         xcopy /E /S /I /Y "demo" "E:\GitHub\RealTimeGraphics\RepriseMySponza\demo"
-         xcopy /Y "E:\GitHub\RealTimeGraphics\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe" "E:\GitHub\RealTimeGraphics\RepriseMySponza\demo"
+         xcopy /E /S /I /Y "doc" "H:\RealTimeGraphics\RepriseMySponza\demo"
+         xcopy /E /S /I /Y "demo" "H:\RealTimeGraphics\RepriseMySponza\demo"
+         xcopy /Y "H:\RealTimeGraphics\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe" "H:\RealTimeGraphics\RepriseMySponza\demo"
          :VCEnd
-         File not found - doc
          0 File(s) copied
+         File not found - doc
          File not found - demo
          0 File(s) copied
-         E:\GitHub\RealTimeGraphics\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe
+         H:\RealTimeGraphics\RepriseMySponza\RepriseMySponza\build\Debug\RepriseMySponza.exe
          1 File(s) copied
-     1>Done Building Project "E:\GitHub\RealTimeGraphics\RepriseMySponza\RepriseMySponza\RepriseMySponza.vcxproj" (Build target(s)).
+     1>Done Building Project "H:\RealTimeGraphics\RepriseMySponza\RepriseMySponza\RepriseMySponza.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.40
+Time Elapsed 00:00:19.15

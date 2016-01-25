@@ -14,7 +14,7 @@ in float varying_mat_colour;
 
 layout (location = 0) out vec3 fragment_position;
 layout (location = 1) out vec2 fragment_normal;
-layout (location = 2) out flat float fragment_matColour;
+layout (location = 2) out float fragment_matColour;
 
 void main(void)
 {

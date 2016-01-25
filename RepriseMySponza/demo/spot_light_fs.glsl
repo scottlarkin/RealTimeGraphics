@@ -18,11 +18,11 @@ layout (std140) uniform PerFrameUniforms
 	vec3 cameraPos;
 };
 
-in flat vec3 lightIntensity;
-in flat vec3 lightPosition;
-in flat float lightRange;
-in flat vec3 lightDirection;
-in flat float lightFoV;
+flat in vec3 lightIntensity;
+flat in vec3 lightPosition;
+in float lightRange;
+flat in vec3 lightDirection;
+in float lightFoV;
 
 uniform sampler2DRect sampler_world_position;
 uniform sampler2DRect sampler_world_normal;
@@ -44,7 +44,7 @@ void main(void)
 	int matId = int(matColour.x);
 	
 	vec3 bulb_colour = materials[matId].dColour * (lightIntensity/5);
-
+	
 	vec3 L = normalize(lightPosition - position);
 	vec3 R = normalize(reflect(-L, normal));
 	
@@ -63,7 +63,6 @@ void main(void)
 		diffuse += (clamp(LdotN,0,1) * bulb_colour);
 	}
 
-	bulb_colour *= attenuation;
 	diffuse += (clamp(LdotN,0,1) * bulb_colour);
 	
 	reflected_light = vec4(diffuse,0);

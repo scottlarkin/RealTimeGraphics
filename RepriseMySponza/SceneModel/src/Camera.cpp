@@ -4,6 +4,7 @@ using namespace SceneModel;
 
 Camera::Camera()
 {
+	aa_ = false;
     position = glm::vec3(0, 0, 0);
     direction = glm::vec3(0, 0, -1);
     vertical_field_of_view_degrees = 60;

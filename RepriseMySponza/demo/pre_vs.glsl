@@ -14,7 +14,7 @@ layout (location = 4) in mat4 model_Xform;
 out vec3 varying_position;
 out vec3 varying_normal;
 out vec2 varying_texCoords;
-out flat float varying_mat_colour;
+out float varying_mat_colour;
 
 
 void main(void)

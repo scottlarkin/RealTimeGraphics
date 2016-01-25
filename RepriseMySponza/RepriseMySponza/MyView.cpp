@@ -7,6 +7,9 @@
 #include <cassert>
 #include <tsl/primitives.hpp>
 
+#include "smaa_glsl.h"
+
+
 MyView::
 MyView()
 {
@@ -123,6 +126,8 @@ void MyView::generateLightMeshes()
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}
+
+	
 
 }
 
@@ -289,7 +294,7 @@ void MyView::loadMeshes()
 
 				InstanceData id;
 				id.xForm = glm::mat4(instances[x].getTransformationMatrix());
-				id.matColour = (float)instances[x].getMaterialId() - 200;
+				id.matColour = (float)(instances[x].getMaterialId() - 200) + 0.5f;
 				instancesData.push_back(id);
 				mesh.instanceIDs.push_back(instances[x].getId());
 			}
@@ -434,6 +439,181 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 {
 	assert(scene_ != nullptr);
 
+
+	glEnable(GL_TEXTURE_2D);
+
+	glGenTextures(1, &albedo_tex);
+	glBindTexture(GL_TEXTURE_2D, albedo_tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, 0);
+
+	glGenTextures(1, &edge_tex);
+	glBindTexture(GL_TEXTURE_2D, edge_tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, 0);
+
+	glGenTextures(1, &blend_tex);
+	glBindTexture(GL_TEXTURE_2D, blend_tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, 0);
+
+	unsigned char* buffer = 0;
+
+	FILE* f = 0;
+
+	buffer = new unsigned char[1024 * 1024];
+	f = fopen((app_path + "smaa_area.raw").c_str(), "rb"); //rb stands for "read binary file"
+
+	if (!f)
+	{
+		std::cerr << "Couldn't open smaa_area.raw.\n";
+		exit(1);
+	}
+
+	fread(buffer, AREATEX_WIDTH * AREATEX_HEIGHT * 2, 1, f);
+	fclose(f);
+
+	f = 0;
+
+
+	glGenTextures(1, &area_tex);
+	glBindTexture(GL_TEXTURE_2D, area_tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, (GLsizei)AREATEX_WIDTH, (GLsizei)AREATEX_HEIGHT, 0, GL_RG, GL_UNSIGNED_BYTE, buffer);
+
+	f = fopen((app_path + "smaa_search.raw").c_str(), "rb");
+
+	if (!f)
+	{
+		std::cerr << "Couldn't open smaa_search.raw.\n";
+		exit(1);
+	}
+
+	fread(buffer, SEARCHTEX_WIDTH * SEARCHTEX_HEIGHT, 1, f);
+	fclose(f);
+
+	f = 0;
+
+	glGenTextures(1, &search_tex);
+	glBindTexture(GL_TEXTURE_2D, search_tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, (GLsizei)SEARCHTEX_WIDTH, (GLsizei)SEARCHTEX_HEIGHT, 0, GL_RED, GL_UNSIGNED_BYTE, buffer);
+
+
+	delete[] buffer;
+
+	get_opengl_error();
+
+
+	/*
+	* Initialize FBOs
+	*/
+
+	GLenum modes[] = { GL_COLOR_ATTACHMENT0 };
+
+	glGenFramebuffers(1, &albedo_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, albedo_fbo);
+	glDrawBuffers(1, modes);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, albedo_tex, 0);
+
+	check_fbo();
+
+	glGenFramebuffers(1, &edge_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, edge_fbo);
+	glDrawBuffers(1, modes);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, edge_tex, 0);
+
+	check_fbo();
+
+	glGenFramebuffers(1, &blend_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, blend_fbo);
+	glDrawBuffers(1, modes);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, blend_tex, 0);
+
+	check_fbo();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	get_opengl_error();
+
+
+
+	/*
+	* Set up shaders
+	*/
+
+	/*
+	* EDGE SHADER
+	*/
+
+	create_shader(&edge_vs, &edge_ps, &edge_shader);
+
+	//SET UNIFORMS
+	glUseProgram(edge_shader);
+	glUniform1i(glGetUniformLocation(edge_shader, "albedo_tex"), 0);
+	glUseProgram(0);
+
+	//VALIDATE
+	validate_program(edge_shader);
+
+	get_opengl_error();
+
+	/*
+	* BLEND SHADER
+	*/
+
+	create_shader(&blend_vs, &blend_ps, &blend_shader);
+
+	//SET UNIFORMS
+	glUseProgram(blend_shader);
+	glUniform1i(glGetUniformLocation(blend_shader, "edge_tex"), 0);
+	glUniform1i(glGetUniformLocation(blend_shader, "area_tex"), 1);
+	glUniform1i(glGetUniformLocation(blend_shader, "search_tex"), 2);
+	glUseProgram(0);
+
+	//VALIDATE
+	validate_program(blend_shader);
+
+	get_opengl_error();
+
+	/*
+	* NEIGHBORHOOD SHADER
+	*/
+
+	create_shader(&neighborhood_vs, &neighborhood_ps, &neighborhood_shader);
+
+	//SET UNIFORMS
+	glUseProgram(neighborhood_shader);
+	glUniform1i(glGetUniformLocation(neighborhood_shader, "albedo_tex"), 0);
+	glUniform1i(glGetUniformLocation(neighborhood_shader, "blend_tex"), 1);
+	glUseProgram(0);
+
+	//VALIDATE
+	validate_program(neighborhood_shader);
+
+	get_opengl_error();
+
+
+
+
+
 	//anything that is done once on load goes here
 
 	materialCount_ = scene_->getAllMaterials().size();
@@ -526,10 +706,17 @@ int height)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//l-buffer
+
+	GLenum modes[] = { GL_COLOR_ATTACHMENT0 };
+
 	glBindFramebuffer(GL_FRAMEBUFFER, lbuffer_fbo_);
-	glBindRenderbuffer(GL_RENDERBUFFER, lbuffer_colour_rbo_);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, lbuffer_colour_rbo_);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, albedo_tex, 0);
+
+	glDrawBuffers(1, modes);
+	
+	//glBindRenderbuffer(GL_RENDERBUFFER, lbuffer_colour_rbo_);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F, width, height);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, lbuffer_colour_rbo_);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gbuffer_depth_rbo_);
 
 	framebuffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -539,7 +726,6 @@ int height)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	//bind textures 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_position_tex_);
 
@@ -549,7 +735,7 @@ int height)
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_matColour_tex_);
 
-	for (int i = 1; i < MAX_SHADERS; i++){
+	for (int i = 1; i < POST_SHADER; i++){
 
 		GLuint program = shaderPrograms_[i];
 
@@ -564,6 +750,7 @@ int height)
 		GLint matColTex = glGetUniformLocation(program, "sampler_world_matColour");
 		glUniform1i(matColTex, 2);
 	}
+
 
 }
 
@@ -675,9 +862,20 @@ void MyView::ambientPass()
 	glStencilFunc(GL_NOTEQUAL, 0, ~0);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
+	glClearColor(0.3, 0, 0, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, lbuffer_fbo_);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
+
+	//bind textures 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_position_tex_);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_normal_tex_);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_matColour_tex_);
 
 	//global lights
 	//bind quad vao, which is used by all global lights
@@ -706,7 +904,7 @@ void MyView::spotlightPass()
 {
 	//spot lights
 	glUseProgram(shaderPrograms_[SPOT_LIGHT]);
-	glDrawElementsInstanced(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0, spotLightCount_);
+	glDrawElementsInstanced(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0, 1);
 }
 
 void MyView::pointlightPass()
@@ -726,6 +924,80 @@ void MyView::pointlightPass()
 	glDrawElementsInstanced(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0, pointLightCount_);
 }
 
+void::MyView::antiAliasingPasses()
+{
+	glCullFace(GL_BACK);
+
+	glDisable(GL_BLEND);
+
+	/*
+	* EDGE DETECTION PASS
+	*/
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_STENCIL_TEST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, edge_fbo);
+
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glUseProgram(edge_shader);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, albedo_tex);
+
+	draw_quad();
+
+	glUseProgram(0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	/*
+	* BLENDING WEIGHTS PASS
+	*/
+
+	glBindFramebuffer(GL_FRAMEBUFFER, blend_fbo);
+
+	glClearColor(0.0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glUseProgram(blend_shader);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, edge_tex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, area_tex);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, search_tex);
+
+	draw_quad();
+
+	glUseProgram(0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, lbuffer_fbo_);
+
+	/*
+	* NEIGHBORHOOD BLENDING PASS
+	*/
+
+	glUseProgram(neighborhood_shader);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, albedo_tex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, blend_tex);
+
+	glEnable(GL_FRAMEBUFFER_SRGB);
+
+	draw_quad();
+
+	glDisable(GL_FRAMEBUFFER_SRGB);
+
+	glUseProgram(0);
+
+}
+
 void MyView::
 windowViewRender(std::shared_ptr<tygra::Window> window)
 {
@@ -741,8 +1013,16 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	pointlightPass();
 	spotlightPass(); //must be done after point lights, as the sphere vao is bound in point light pass
 
+	//apply SSMAA to the image
+	antiAliasingPasses();
+
 	//blit l-buffer to screen
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, lbuffer_fbo_);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, width_, height_, 0, 0, width_, height_, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	
 }
+
+
+
+

@@ -18,7 +18,7 @@ uniform sampler2DRect sampler_world_matColour;
 
 uniform vec3 ambientLight;
 
-layout (location = 0) out vec4 reflected_light;
+layout (location = 0) out vec3 reflected_light;
 
 void main(void)
 {
@@ -36,5 +36,5 @@ void main(void)
 	
 	//diffuse = diffuse * NdotL;
 
-    reflected_light = vec4(diffuse,1);
+    reflected_light = diffuse;
 }

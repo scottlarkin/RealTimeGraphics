@@ -19,15 +19,15 @@ layout (std140) uniform PerFrameUniforms
 };
 
 
-in flat vec3 lightIntensity;
-in flat vec3 lightPosition;
-in flat float lightRange;
+flat in vec3 lightIntensity;
+flat in vec3 lightPosition;
+in float lightRange;
 
 uniform sampler2DRect sampler_world_position;
 uniform sampler2DRect sampler_world_normal;
 uniform sampler2DRect sampler_world_matColour;
 
-layout (location = 0) out vec4 reflected_light;
+layout (location = 0) out vec3 reflected_light;
 
 void main(void)
 {
@@ -57,5 +57,5 @@ void main(void)
 	bulb_colour *= attenuation * 1  ;
 	diffuse += (clamp(LdotN,0,1) * bulb_colour);
 	
-	reflected_light = vec4(diffuse,0);
+	reflected_light = diffuse;
 }

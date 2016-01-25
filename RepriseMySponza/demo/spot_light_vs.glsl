@@ -21,11 +21,11 @@ layout (std140) uniform PerFrameUniforms
 	vec3 cameraPos;
 };
 
-out flat vec3 lightPosition;
-out flat float lightRange;
-out flat vec3 lightIntensity;
-out flat vec3 lightDirection;
-out flat float lightFoV;
+flat out vec3 lightPosition;
+out float lightRange;
+flat out vec3 lightIntensity;
+flat out vec3 lightDirection;
+out float lightFoV;
 
 layout (location = 0) in vec3 vertex_position;
 
@@ -41,9 +41,9 @@ void main(void)
 
 	mat4 mat;
 
-	mat[0] = vec4(lightRange,0,0,0);
-	mat[1] = vec4(0,lightRange,0,0);
-	mat[2] = vec4(0,0,lightRange,0);
+	mat[0] = vec4(5,0,0,0);
+	mat[1] = vec4(0,5,0,0);
+	mat[2] = vec4(0,0,5,0);
 	mat[3] = vec4(lightPosition, 1);
 
     gl_Position = projectionViewXform * mat * vec4(vertex_position, 1);

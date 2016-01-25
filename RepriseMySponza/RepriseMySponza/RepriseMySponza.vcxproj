@@ -93,10 +93,14 @@
   <ItemGroup>
     <ClInclude Include="MyController.hpp" />
     <ClInclude Include="MyView.hpp" />
+    <ClInclude Include="SMAA.h" />
+    <ClInclude Include="smaa_glsl.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\demo\reprise_fs.glsl" />
     <None Include="..\demo\reprise_vs.glsl" />
+    <None Include="smaa_area.raw" />
+    <None Include="smaa_search.raw" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\demo\readme.txt" />

@@ -16,15 +16,13 @@ layout (std140) uniform DirectionalLightUniforms
 layout (std140) uniform PerFrameUniforms
 {
 	mat4 projectionViewXform;
-	vec3 ambientColour;
-	float pad;
 	vec3 cameraPos;
 };
 
 layout (location = 0) in vec2 vertex_position;
 
-out flat vec3 lightDirection;
-out flat vec3 lightIntensity;
+flat out vec3 lightDirection;
+flat out vec3 lightIntensity;
 
 void main(void)
 {

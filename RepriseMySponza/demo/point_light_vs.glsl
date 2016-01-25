@@ -18,9 +18,9 @@ layout (std140) uniform PerFrameUniforms
 	vec3 cameraPos;
 };
 
-out flat vec3 lightPosition;
-out flat float lightRange;
-out flat vec3 lightIntensity;
+flat out vec3 lightPosition;
+out float lightRange;
+flat out vec3 lightIntensity;
 
 layout (location = 0) in vec3 vertex_position;
 

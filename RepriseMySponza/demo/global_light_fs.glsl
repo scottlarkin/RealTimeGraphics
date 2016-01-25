@@ -22,10 +22,10 @@ uniform sampler2DRect sampler_world_position;
 uniform sampler2DRect sampler_world_normal;
 uniform sampler2DRect sampler_world_matColour;
 
-in flat vec3 lightDirection;
-in flat vec3 lightIntensity;
+flat in vec3 lightDirection;
+flat in vec3 lightIntensity;
 
-layout (location = 0) out vec4 reflected_light;
+layout (location = 0) out vec3 reflected_light;
 
 void main(void)
 {
@@ -43,5 +43,5 @@ void main(void)
 	
 	diffuse = diffuse * NdotL;
 
-    reflected_light = vec4(diffuse,1);
+    reflected_light = diffuse;
 }

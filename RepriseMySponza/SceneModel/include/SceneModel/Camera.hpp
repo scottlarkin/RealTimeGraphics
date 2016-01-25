@@ -15,6 +15,8 @@ class Camera
 public:
     Camera();
 
+	bool aa_;
+
     bool isStatic() const { return false; }
 
     glm::vec3 getPosition() const;

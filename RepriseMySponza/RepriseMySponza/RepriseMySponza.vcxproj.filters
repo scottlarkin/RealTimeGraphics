@@ -32,6 +32,12 @@
     <ClInclude Include="MyController.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SMAA.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="smaa_glsl.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\demo\reprise_vs.glsl">
@@ -39,6 +45,12 @@
     </None>
     <None Include="..\demo\reprise_fs.glsl">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="smaa_area.raw">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="smaa_search.raw">
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

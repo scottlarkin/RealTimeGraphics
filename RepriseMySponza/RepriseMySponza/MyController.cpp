@@ -90,7 +90,15 @@ windowControlKeyboardChanged(std::shared_ptr<tygra::Window> window,
     switch (key_index) {
     case tygra::kWindowKeyLeft:
     case 'A':
-        camera_move_speed_[0] = down ? 1.f : 0.f;
+		
+		if (down){
+			scene_->getCamera().aa_ = !scene_->getCamera().aa_;
+			std::cerr << "pressed A  " << scene_->getCamera().aa_ ? 1 : 0;
+			std::cerr <<  std::endl;
+
+		}
+
+       // camera_move_speed_[0] = down ? 1.f : 0.f;
         break;
     case tygra::kWindowKeyRight:
     case 'D':
