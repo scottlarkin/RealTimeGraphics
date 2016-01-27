@@ -127,7 +127,7 @@ void MyView::generateLightMeshes()
 		glBindVertexArray(0);
 	}
 
-	
+
 
 }
 
@@ -412,9 +412,9 @@ void MyView::loadUniformBuffers()
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, perFrame_ubo_);
 	glUniformBlockBinding(shaderPrograms_[PRE_SHADER], glGetUniformBlockIndex(shaderPrograms_[PRE_SHADER], "PerFrameUniforms"), 0);
-	glUniformBlockBinding(shaderPrograms_[GLOBAL_LIGHT], glGetUniformBlockIndex(shaderPrograms_[GLOBAL_LIGHT], "PerFrameUniforms"), 0);
 	glUniformBlockBinding(shaderPrograms_[SPOT_LIGHT], glGetUniformBlockIndex(shaderPrograms_[SPOT_LIGHT], "PerFrameUniforms"), 0);
 	glUniformBlockBinding(shaderPrograms_[POINT_LIGHT], glGetUniformBlockIndex(shaderPrograms_[POINT_LIGHT], "PerFrameUniforms"), 0);
+
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, material_ubo_);
 	glUniformBlockBinding(shaderPrograms_[GLOBAL_LIGHT], glGetUniformBlockIndex(shaderPrograms_[GLOBAL_LIGHT], "MaterialUniforms"), 1);
@@ -441,6 +441,49 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 
 
 	glEnable(GL_TEXTURE_2D);
+
+	//shadow maps
+
+	glGenTextures(1, &shadowMap_tex_);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, shadowMap_tex_);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 5, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0); //the 256 is number of layers, change this to number of shadow casting lights
+
+	glGenFramebuffers(1, &shadowMap_fbo_);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMap_fbo_);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowMap_tex_, 0);
+
+	glDrawBuffer(GL_NONE); // No color buffer is drawn to.
+
+	check_fbo();
+
+	shadowMap_program_ = glCreateProgram();
+	GLuint fs = getFragmentShader("shadowMap_fs.glsl");
+	GLuint vs = getVertexShader("shadowMap_vs.glsl");
+
+	glAttachShader(shadowMap_program_, vs);
+	glDeleteShader(vs);
+	glAttachShader(shadowMap_program_, fs);
+
+	glDeleteShader(fs);
+	glLinkProgram(shadowMap_program_);
+
+	//test program
+	GLint link_status = 0;
+	glGetProgramiv(shadowMap_program_, GL_LINK_STATUS, &link_status);
+	if (link_status != GL_TRUE) {
+		const int string_length = 1024;
+		GLchar log[string_length] = "";
+		glGetProgramInfoLog(shadowMap_program_, string_length, NULL, log);
+		std::cerr << log << std::endl;
+	}
+
+
+	//ssma textures
 
 	glGenTextures(1, &albedo_tex);
 	glBindTexture(GL_TEXTURE_2D, albedo_tex);
@@ -713,7 +756,7 @@ int height)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, albedo_tex, 0);
 
 	glDrawBuffers(1, modes);
-	
+
 	//glBindRenderbuffer(GL_RENDERBUFFER, lbuffer_colour_rbo_);
 	//glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F, width, height);
 	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, lbuffer_colour_rbo_);
@@ -735,6 +778,7 @@ int height)
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_RECTANGLE, gbuffer_matColour_tex_);
 
+
 	for (int i = 1; i < POST_SHADER; i++){
 
 		GLuint program = shaderPrograms_[i];
@@ -752,6 +796,12 @@ int height)
 	}
 
 
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, shadowMap_tex_);
+	GLuint program = shaderPrograms_[SPOT_LIGHT];
+	glUseProgram(program);
+	GLint smapLoc = glGetUniformLocation(program, "sampler_shadowMap");
+	glUniform1i(smapLoc, 3);
 }
 
 void MyView::
@@ -799,9 +849,20 @@ void MyView::updateBuffers()
 			glm::vec3 p;
 			float pad;
 			glm::vec3 d;
+			glm::mat4 pv;
 		};
 
 		pd d;
+
+		float far = scene_->getCamera().getFarPlaneDistance();
+		float near = scene_->getCamera().getNearPlaneDistance();
+		glm::vec3 lightPos = scene_->getAllSpotLights()[i].getPosition();
+		glm::vec3 lightLookAt = scene_->getAllSpotLights()[i].getDirection() - lightPos;
+		float fov = scene_->getAllSpotLights()[i].getConeAngleDegrees();
+		glm::mat4 view_xform = glm::lookAt(lightPos, lightLookAt, upDir_);
+		glm::mat4 projection = glm::perspective(fov, aspect_ratio_, near, far);
+
+		d.pv = projection * view_xform;
 
 		d.p = sls[i].getPosition();
 		d.d = sls[i].getDirection();
@@ -826,7 +887,6 @@ void MyView::updateBuffers()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
-
 
 void MyView::geometryPass()
 {
@@ -862,7 +922,7 @@ void MyView::ambientPass()
 	glStencilFunc(GL_NOTEQUAL, 0, ~0);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-	glClearColor(0.3, 0, 0, 0);
+	glClearColor(0.3, 0.4, 0.1, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, lbuffer_fbo_);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
@@ -902,9 +962,15 @@ void MyView::directionalLightPass()
 
 void MyView::spotlightPass()
 {
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, shadowMap_tex_);
+
+	
+
 	//spot lights
 	glUseProgram(shaderPrograms_[SPOT_LIGHT]);
-	glDrawElementsInstanced(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0, 1);
+	glDrawElementsInstanced(GL_TRIANGLES, light_sphere_mesh_.element_count, GL_UNSIGNED_INT, 0, spotLightCount_);
 }
 
 void MyView::pointlightPass()
@@ -1007,10 +1073,59 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 
 	geometryPass(); //must be done first to write to g-buffer
 
+	glUseProgram(shadowMap_program_);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, shadowMap_fbo_);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+
+	GLuint lightPVLocation = glGetUniformLocation(shadowMap_program_, "lightPV");
+
+	glViewport(0, 0, 1024, 1024);
+
+	int i;
+	for (i = 0; i < spotLightCount_; i++){
+		//generate shadow maps for spot
+
+		float far = scene_->getCamera().getFarPlaneDistance();
+		float near = scene_->getCamera().getNearPlaneDistance();
+
+		glm::vec3 lightPos = scene_->getAllSpotLights()[i].getPosition();
+		glm::vec3 lightLookAt = scene_->getAllSpotLights()[i].getDirection() - lightPos;
+		float fov = scene_->getAllSpotLights()[i].getConeAngleDegrees();
+		glm::mat4 view_xform = glm::lookAt(lightPos, lightLookAt, upDir_);
+		glm::mat4 projection = glm::perspective(fov, 1.0f, near, far);
+
+		glm::mat4 lightPV = projection * view_xform;
+
+		glUniformMatrix4fv(lightPVLocation, 1, GL_FALSE, glm::value_ptr(lightPV));
+
+		glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowMap_tex_, 0, i);
+
+		Mesh mesh;
+		for (int i = 0; i < meshes_.size(); i++)
+		{
+			mesh = meshes_[i];
+			glBindVertexArray(mesh.vao);
+			glDrawElementsInstanced(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, 0, mesh.instanceIDs.size());
+		}
+	}
+
+	glViewport(0, 0, width_, height_);
+
 	ambientPass();
 	directionalLightPass(); //must be done after ambient and before point, as the quad vao is bound in ambient pass
-	
-	pointlightPass();
+
+	//pointlightPass();
+
+	glCullFace(GL_FRONT);
+
+	//point lights
+
+	//glEnable(GL_DEPTH_TEST);
+	//glDepthFunc(GL_GREATER);
+
+	//bind the sphere mesh, used by point and spot lights
+	glBindVertexArray(light_sphere_mesh_.vao);
 	spotlightPass(); //must be done after point lights, as the sphere vao is bound in point light pass
 
 	//apply SSMAA to the image
@@ -1020,7 +1135,7 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, lbuffer_fbo_);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, width_, height_, 0, 0, width_, height_, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	
+
 }
 
 

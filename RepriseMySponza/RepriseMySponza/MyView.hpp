@@ -31,6 +31,13 @@ class MyView : public tygra::WindowViewDelegate
 {
 public:
 
+
+	GLuint shadowMap_fbo_;
+	GLuint shadowMap_rbo_;
+	GLuint shadowMap_tex_;
+	GLuint shadowMap_program_;
+
+
 	bool StringReplace(std::string& str, const std::string& from, const std::string& to) {
 		size_t start_pos = str.find(from);
 		if (start_pos == std::string::npos)
@@ -113,6 +120,7 @@ private:
 	{
 		glm::vec3 position;
 		float pad;
+		glm::mat4 projectionView;
 		glm::vec3 direction;
 		float FoV;
 		glm::vec3 intensity;
@@ -207,7 +215,7 @@ private:
 
 	GLuint gbuffer_depth_rbo_;
 	GLuint gbuffer_fbo_;
-	
+
 	std::vector<Mesh> meshes_;
 
 	glm::vec3 upDir_;
@@ -334,6 +342,26 @@ private:
 	{
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		{
+			GLenum error = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+			std::string serr;
+			if (error == GL_FRAMEBUFFER_UNDEFINED){
+				serr = "undef";
+			}
+			if (error == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT){
+				serr = "undef";
+			}
+			if (error == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT){
+				serr = "undef";
+			}
+			if (error == GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER){
+				serr = "undef";
+			}
+			if (error == GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE){
+				serr = "undef";
+			}
+			if (error == GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS){
+				serr = "undef";
+			}
 			std::cerr << "FBO not complete.\n";
 			exit(1);
 		}

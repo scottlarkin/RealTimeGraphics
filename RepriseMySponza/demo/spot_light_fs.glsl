@@ -24,11 +24,31 @@ in float lightRange;
 flat in vec3 lightDirection;
 in float lightFoV;
 
+uniform sampler2DArray sampler_shadowMap;
 uniform sampler2DRect sampler_world_position;
 uniform sampler2DRect sampler_world_normal;
 uniform sampler2DRect sampler_world_matColour;
 
 layout (location = 0) out vec4 reflected_light;
+
+in vec4 shadowCoord;
+flat in int instID; 
+
+in VS_OUT {
+    vec3 FragPos;
+    vec4 FragPosLightSpace;
+} fs_in;
+
+
+float ShadowCalculation(vec4 fragPosLightSpace, int i)
+{
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5; 
+    float closestDepth = texture(sampler_shadowMap, vec3(projCoords.xy, i )).r;   
+    float currentDepth = projCoords.z; 
+    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;  
+    return shadow;
+}
 
 void main(void)
 {
@@ -37,13 +57,13 @@ void main(void)
 	vec2 normalXY = texelFetch(sampler_world_normal, ivec2(gl_FragCoord.xy)).xy;
 	vec4 matColour = texelFetch(sampler_world_matColour, ivec2(gl_FragCoord.xy));
 
-	vec3 diffuse; 
+	vec3 diffuse = vec3(0,0,0); 
 	
 	vec3 normal = vec3(normalXY.x, normalXY.y, 1-(normalXY.x+normalXY.y));
 	
 	int matId = int(matColour.x);
 	
-	vec3 bulb_colour = materials[matId].dColour * (lightIntensity/5);
+	vec3 bulb_colour;
 	
 	vec3 L = normalize(lightPosition - position);
 	vec3 R = normalize(reflect(-L, normal));
@@ -59,11 +79,12 @@ void main(void)
 
 	//diffuse
 	if(spotEffect > cos(lightFoV * 0.0174532925)){
-		bulb_colour *= attenuation;
+
+		bulb_colour = materials[matId].dColour * (lightIntensity) * attenuation;
 		diffuse += (clamp(LdotN,0,1) * bulb_colour);
 	}
 
-	diffuse += (clamp(LdotN,0,1) * bulb_colour);
-	
-	reflected_light = vec4(diffuse,0);
+	float shadow = ShadowCalculation(fs_in.FragPosLightSpace,instID );       
+
+	reflected_light = vec4( diffuse * 1,0);
 }

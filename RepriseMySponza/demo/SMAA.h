@@ -317,7 +317,7 @@
  *   contrast edges are properly filtered by just 2x.
  */
 #ifndef SMAA_THRESHOLD
-#define SMAA_THRESHOLD 0.1
+#define SMAA_THRESHOLD 0.05
 #endif
 
 /**
